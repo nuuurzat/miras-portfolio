@@ -5,7 +5,6 @@
    ============================================================ */
 
 const CASE_FILES = [
-  { src: 'bastau/аст 5-1.mp4', poster: 'posters/bastau/аст 5-1.mp4.png' },
   { src: 'bastau/аст 2-1.mp4', poster: 'posters/bastau/аст 2-1.mp4.png' },
   { src: 'bastau/аст 6-1.mp4', poster: 'posters/bastau/аст 6-1.mp4.png' },
   { src: 'bastau/аст 7.mp4', poster: 'posters/bastau/аст 7.mp4.png' },
