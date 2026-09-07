@@ -48,6 +48,25 @@
   const playIcon =
     '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M8 5v14l11-7z"/></svg>';
 
+  /* ---------- Аналитика (кіру + ойнау) ---------- */
+  const trackApi = () => (D.trackApi || "").replace(/\/+$/, "");
+  const beacon = (path) => {
+    const a = trackApi();
+    if (!a) return;
+    try {
+      navigator.sendBeacon(a + path);
+    } catch (e) {}
+  };
+  // Бетті ашу — әр келушіге бір рет
+  try {
+    let vid = localStorage.getItem("vid");
+    if (!vid) {
+      vid = Math.random().toString(36).slice(2) + Date.now().toString(36);
+      localStorage.setItem("vid", vid);
+    }
+    beacon("/api/track/view?vid=" + encodeURIComponent(vid) + "&path=" + encodeURIComponent(location.pathname));
+  } catch (e) {}
+
   /* ---------- Лайтбокс (кейс медиасы) ---------- */
   const lightbox = document.createElement("div");
   lightbox.className = "lightbox";
@@ -55,6 +74,10 @@
   document.body.appendChild(lightbox);
 
   const openMedia = (media) => {
+    // Ойнау есебі
+    if (media && media[0]) {
+      beacon("/api/track/play?v=" + encodeURIComponent(media[0].src || ""));
+    }
     const inner = lightbox.querySelector(".lightbox-inner");
     inner.innerHTML = "";
     media.forEach((m) => {
