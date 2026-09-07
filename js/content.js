@@ -21,8 +21,7 @@ const CASE_FILES = [
   { src: 'Envy/envy 3 - +.mp4', poster: 'posters/Envy/envy 3 - +.mp4.png' },
   { src: 'Envy/sham 1.mp4', poster: 'posters/Envy/sham 1.mp4.png' },
   { src: 'Envy/4 lok.mp4', poster: 'posters/Envy/4 lok.mp4.png' },
-  { src: 'Envy/zall.mp4', poster: 'posters/Envy/zall.mp4.png' },
-  { src: 'asmr test.mp4', poster: 'posters/asmr test.mp4.png' }
+  { src: 'Envy/zall.mp4', poster: 'posters/Envy/zall.mp4.png' }
 ];
 
 window.PORTFOLIO_DATA = {
