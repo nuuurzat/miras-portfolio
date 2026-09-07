@@ -304,8 +304,11 @@ def sanitize_name(name):
 def make_poster(video_path, folder):
     poster_dir = os.path.join(SITE, "img", "posters", folder)
     os.makedirs(poster_dir, exist_ok=True)
-    r = subprocess.run(["qlmanage", "-t", "-s", "480", "-o", poster_dir, video_path],
-                       capture_output=True, text=True, timeout=120)
+    try:
+        subprocess.run(["qlmanage", "-t", "-s", "480", "-o", poster_dir, video_path],
+                       capture_output=True, text=True, timeout=30)
+    except Exception:
+        pass
     out = os.path.join(poster_dir, os.path.basename(video_path) + ".png")
     if os.path.exists(out):
         return "posters/%s/%s.png" % (folder, os.path.basename(video_path)) if folder else "posters/%s.png" % os.path.basename(video_path)
@@ -578,52 +581,61 @@ class H(BaseHTTPRequestHandler):
         body = self.read_body(limit=2 * 1024 * 1024 * 1024)
         d = load_data()
         added = []
-        for part in body.split(b"--" + boundary):
-            if b"Content-Disposition" not in part:
-                continue
-            head, _, content = part.partition(b"\r\n\r\n")
-            content = content.rstrip(b"\r\n")
-            fn = None
-            for line in head.split(b"\r\n"):
-                if b"filename=" in line:
-                    fn = line.split(b'filename="')[1].split(b'"')[0].decode("utf-8", "replace")
-            if not fn or not content:
-                continue
-            fn = sanitize_name(fn)
-            ext = os.path.splitext(fn)[1].lower()
-            if ext not in (".mp4", ".mov", ".webm"):
-                return self.send(400, {"ok": False, "msg": "Тек MP4/MOV/WebM: %s" % fn})
-            # MOV → MP4 (егер ffmpeg болса)
-            tmp = os.path.join(SITE, "img", unique_path(fn))
-            with open(tmp, "wb") as f:
-                f.write(content)
-            final = tmp
-            if ext == ".mov":
-                try:
-                    import imageio_ffmpeg
-                    ff = imageio_ffmpeg.get_ffmpeg_exe()
-                    mp4 = os.path.splitext(tmp)[0] + ".mp4"
-                    r = subprocess.run([ff, "-hide_banner", "-loglevel", "error", "-y", "-i", tmp,
-                                        "-c:v", "libx264", "-crf", "26", "-preset", "veryfast",
-                                        "-c:a", "aac", "-b:a", "128k", "-movflags", "+faststart", mp4],
-                                       capture_output=True, timeout=1800)
-                    if r.returncode == 0 and os.path.getsize(mp4) > 1000:
-                        os.remove(tmp)
-                        final = mp4
-                        fn = os.path.basename(mp4)
-                except Exception:
-                    pass
-            rel = os.path.relpath(final, os.path.join(SITE, "img"))
-            folder = os.path.dirname(rel)
-            poster = make_poster(final, folder)
-            entry = {"src": rel, "poster": poster}
-            d["case_files"].append(entry)
-            added.append(rel)
+        created = []
+        try:
+            for part in body.split(b"--" + boundary):
+                if b"Content-Disposition" not in part:
+                    continue
+                head, _, content = part.partition(b"\r\n\r\n")
+                content = content.rstrip(b"\r\n")
+                fn = None
+                for line in head.split(b"\r\n"):
+                    if b"filename=" in line:
+                        fn = line.split(b'filename="')[1].split(b'"')[0].decode("utf-8", "replace")
+                if not fn or not content:
+                    continue
+                fn = sanitize_name(fn)
+                ext = os.path.splitext(fn)[1].lower()
+                if ext not in (".mp4", ".mov", ".webm"):
+                    return self.send(400, {"ok": False, "msg": "Тек MP4/MOV/WebM: %s" % fn})
+                # MOV → MP4 (егер ffmpeg болса)
+                tmp = os.path.join(SITE, "img", unique_path(fn))
+                with open(tmp, "wb") as f:
+                    f.write(content)
+                final = tmp
+                if ext == ".mov":
+                    try:
+                        import imageio_ffmpeg
+                        ff = imageio_ffmpeg.get_ffmpeg_exe()
+                        mp4 = os.path.splitext(tmp)[0] + ".mp4"
+                        r = subprocess.run([ff, "-hide_banner", "-loglevel", "error", "-y", "-i", tmp,
+                                            "-c:v", "libx264", "-crf", "26", "-preset", "veryfast",
+                                            "-c:a", "aac", "-b:a", "128k", "-movflags", "+faststart", mp4],
+                                           capture_output=True, timeout=1800)
+                        if r.returncode == 0 and os.path.getsize(mp4) > 1000:
+                            os.remove(tmp)
+                            final = mp4
+                            fn = os.path.basename(mp4)
+                    except Exception:
+                        pass
+                rel = os.path.relpath(final, os.path.join(SITE, "img"))
+                created.append(final)
+                folder = os.path.dirname(rel)
+                poster = make_poster(final, folder)
+                entry = {"src": rel, "poster": poster}
+                d["case_files"].append(entry)
+                added.append(rel)
+        except Exception as e:
+                for f in created:
+                    try:
+                        os.remove(f)
+                    except OSError:
+                        pass
+                return self.send(500, {"ok": False, "msg": str(e)[:200]})
         save_data(d)
         gen_content_js(d)
         r = publish()
         return self.send(200, {"ok": True, "added": added, "publish": r})
-
 ADMIN_HTML = """<!doctype html><html lang="kk"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Админ — портфолио</title>
