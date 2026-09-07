@@ -7,7 +7,6 @@
 const CASE_FILES = [
   { src: 'bastau/аст 2-1.mp4', poster: 'posters/bastau/аст 2-1.mp4.png' },
   { src: 'bastau/asmr.mp4', poster: 'posters/bastau/asmr.mp4.png' },
-  { src: 'bastau/B4(2) - 1 .mp4', poster: 'posters/bastau/B4(2) - 1 .mp4.png' },
   { src: 'Sham/шам таргет рус.mp4', poster: 'posters/Sham/шам таргет рус.mp4.png' },
   { src: 'Sham/шам таргет - 3 - 2 .mp4', poster: 'posters/Sham/шам таргет - 3 - 2 .mp4.png' },
   { src: 'Sham/студд-.mp4', poster: 'posters/Sham/студд-.mp4.png' },
