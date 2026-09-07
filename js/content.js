@@ -265,7 +265,7 @@ window.PORTFOLIO_DATA = {
     }
   }
 };
-window.PORTFOLIO_DATA.trackApi = 'https://graphics-persistent-vessel-commands.trycloudflare.com';
+window.PORTFOLIO_DATA.trackApi = 'https://expects-phillips-reconstruction-locale.trycloudflare.com';
 
 (function () {
   const D = window.PORTFOLIO_DATA;
